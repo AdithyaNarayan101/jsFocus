@@ -71,6 +71,12 @@ jsPsych.plugins["mousetracking"] = (function() {
         pretty_name: 'Trial Hold Duration',
         default: 100,
         description: 'How long to hold the mouse over .'
+      },
+      size:{
+        type: jsPsych.plugins.parameterType.INT,
+        pretty_name: 'Stimulus Size',
+        default: 40,
+        description: 'Size of the stimulus'
       }
     }
   }
@@ -89,11 +95,11 @@ jsPsych.plugins["mousetracking"] = (function() {
   //  paper.innerHTML += '<div id="jspsych-html-button-response-btngroup">';
     paper.innerHTML += '<div id="jspsych-mousetracking-btngroup">';
     var str = trial.choices[0]
-    paper.innerHTML +=  '<div class="jspsych-btn-fb"  style="background-color:hsl('+trial.color[0]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[1]+'px; right:' + trial.location[0]+'px; width: 40px; height:40px" id="mousetracking-button-' + 0 +'" data-choice="'+0+'">'+str+'</div>';
+    paper.innerHTML +=  '<div class="jspsych-btn-fb"  style="background-color:hsl('+trial.color[0]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[1]+'px; right:' + trial.location[0]+'px; width: '+trial.size[0]+'px; height:'+trial.size[0]+'px" id="mousetracking-button-' + 0 +'" data-choice="'+0+'">'+str+'</div>';
    
     if( trial.choices.length==2){
       var str = trial.choices[1]
-      paper.innerHTML +=  '<div class="jspsych-btn-fb" style="background-color:hsl('+trial.color[1]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[3]+'px; right:' + trial.location[2]+'px; width: 40px; height:40px" id="mousetracking-button-' + 1 +'" data-choice="'+1+'">'+str+'</div>';
+      paper.innerHTML +=  '<div class="jspsych-btn-fb" style="background-color:hsl('+trial.color[1]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[3]+'px; right:' + trial.location[2]+'px; width: '+trial.size[1]+'px; height:'+trial.size[1]+'px" id="mousetracking-button-' + 1 +'" data-choice="'+1+'">'+str+'</div>';
       // paper.innerHTML += '<div id="jspsych-mousetracking-stimulus" style = " position: absolute; bottom:'+ (cont_height - trial.stimulus_size[1])/2 +'px; left:'+ (cont_width - trial.stimulus_size[0])/2 +'px"><img style="width:'+trial.stimulus_size[0]+'px; height:'+trial.stimulus_size[0]+'px" src = "'+trial.stimulus+'"/img></div>';
 
     }

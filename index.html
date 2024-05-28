@@ -47,10 +47,25 @@ for (var i = 1; i <=nMain; i++){
 
  all_hues = ['240','238','235','232']
  rand_hue = Math.floor(Math.random() * (all_hues.length) + 0)
- rand_time = Math.floor(Math.random() * (1400) + 10)
- test_stimuli.push({stimulus: name, change_hue: all_hues[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
-}
+ rand_time = randomExponential(1/500)+500
+ if(rand_time>2000){rand_time=2000}
 
+ all_sizes = [20,70],
+ rand_size = Math.floor(Math.random() * (all_sizes.length) + 0)
+ test_stimuli.push({stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
+}
+function randomExponential(rate, randomUniform) {
+  // http://en.wikipedia.org/wiki/Exponential_distribution#Generating_exponential_variates
+  rate = rate || 1;
+
+  // Allow to pass a random uniform value or function
+  // Default to Math.random()
+  var U = randomUniform;
+  if (typeof randomUniform === 'function') U = randomUniform();
+  if (!U) U = Math.random();
+
+  return -Math.log(U)/rate;
+}
 /*set up experiment instructions*/
 var instructions = {
   type: "instructions",
@@ -63,11 +78,17 @@ var instructions = {
   button_label_next: "OK"
 };
 
-  var ITI = {
-    type: 'html-keyboard-response',
+var ITI = {
+    type: 'mousetracking',
+    epoch:'fixation',
+    choices: ['+'],
+    color:['100'],
+    location: [450,280,0,0],
+    size : [40],
     stimulus: '<div style="font-size:60px;">+</div>',
-    choices: jsPsych.NO_KEYS,
-    trial_duration: 500
+    eventMonitor:'mouseover',
+    hold_duration:300,
+    trial_duration:10000
   }
 
   /*fixation point*/
@@ -77,9 +98,11 @@ var instructions = {
     choices: ['+'],
     color:['240'],
     location: [450,280,0,0],
+    size : [40],
     stimulus: '<div style="font-size:60px;">+</div>',
     eventMonitor:'mouseover',
-    hold_duration:100
+    hold_duration:500,
+    trial_duration:10000
   }
 
   var delay = {
@@ -88,6 +111,7 @@ var instructions = {
     stimulus: jsPsych.timelineVariable('stimulus'),
     choices :['+',''],
     color:['240','100'],
+    size : [40,jsPsych.timelineVariable('target_size')],
     location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
     eventMonitor:'mouseover',
     hold_duration: jsPsych.timelineVariable('delay_time')
@@ -99,10 +123,12 @@ var instructions = {
     epoch:'decision',
     stimulus: jsPsych.timelineVariable('stimulus'),
     choices :['','+'],
+    size : [jsPsych.timelineVariable('target_size'),40],
     // x:jsPsych.timelineVariable('change_hue'),
     color:['100',jsPsych.timelineVariable('change_hue')],
     location: [jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y'),450,280],
     eventMonitor:'mouseover',
+    trial_duration: 1000,
     hold_duration: 400
 
   } // the mousetracking part of this task occurs in a 1000x600px container-- these dimensions can be altered by changing the jspsych mousetracking plugin in the jspsych folder
@@ -156,7 +182,7 @@ var instructions = {
   }
 
  var test_procedure = {
-    timeline: [ fixation,delay,decisions],
+    timeline: [ ITI,fixation,delay,decisions],
     repetitions: 1,  // 1 repition of the images in the folder
     timeline_variables: test_stimuli
   }
