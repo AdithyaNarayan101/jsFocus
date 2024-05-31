@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mousetracking</title>
+    <title>Focus Task</title>
     <script src="jspsych-6.0.4/jspsych.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-mousetracking.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-survey-text.js"></script>
@@ -9,20 +9,16 @@
     <script src="jspsych-6.0.4/plugins/jspsych-recenter.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-instructions.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-fullscreen.js"></script>
+    <script src="jspsych-6.0.4/plugins/plugin-canvas-keyboard-response.js"></script>
+    <script
+    src="node_modules/chart.js/dist/chart.umd.js">
+</script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <link href="jspsych-6.0.4/css/jspsych-mousetracking.css" rel="stylesheet" type="text/css"></link>
   </head>
   <body></body>
   <script>
 
-  /*
-      This is a web-based mousetracking psychology experiment designed by Mahi Luthra.
-
-      For smooth functioning of the test, make sure all the associated github files within the repository have been downloaded (especially the folder named 'jspsych-6.0.4').
-      Results from this test will be automatically downloaded into the downloads folder of your desktop.
-
-      For further details, please refer to the README.
-  */
 
 
 file_name = null // file name for data file. if null, a default name consisting of the participant ID and a unique number is chosen.
@@ -33,7 +29,7 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain = 100// number of trials
+var nMain =128// number of trials
 
 var test_stimuli = []  // sets up a directory of stimuli
 var images = []
@@ -41,11 +37,14 @@ for (var i = 1; i <=nMain; i++){
  name = "mt_img/anim"+2+".jpg"
  images.push(name)
  console.log(name)
- location_x= [450+250,450-250,450,450,450-250/Math.sqrt(2),450-250/Math.sqrt(2),450+250/Math.sqrt(2),450+250/Math.sqrt(2)]
- location_y= [280,280,280-250,280+250,280-250/Math.sqrt(2),280+250/Math.sqrt(2),280-250/Math.sqrt(2),280+250/Math.sqrt(2)]
+//  location_x= [450+250,450-250,450,450,450-250/Math.sqrt(2),450-250/Math.sqrt(2),450+250/Math.sqrt(2),450+250/Math.sqrt(2)]
+//  location_y= [280,280,280-250,280+250,280-250/Math.sqrt(2),280+250/Math.sqrt(2),280-250/Math.sqrt(2),280+250/Math.sqrt(2)]
+ location_x= [450+250,450-250,450,450]
+ location_y= [280,280,280-250,280+250]
+ 
  rand_target = Math.floor(Math.random() * (location_x.length) + 0)
 
- all_hues = ['240','238','235','232']
+ all_hues = ['238','233','230','225']
  rand_hue = Math.floor(Math.random() * (all_hues.length) + 0)
  rand_time = randomExponential(1/500)+500
  if(rand_time>2000){rand_time=2000}
@@ -70,7 +69,7 @@ function randomExponential(rate, randomUniform) {
 var instructions = {
   type: "instructions",
   pages: function(){
-  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color.<br><br></div>'
+  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color. <br><br></div>'
   return [pageOne]
   },
       allow_backward: false,
@@ -80,9 +79,9 @@ var instructions = {
 
 var ITI = {
     type: 'mousetracking',
-    epoch:'fixation',
-    choices: ['+'],
-    color:['100'],
+    epoch:'ITI',
+    choices: ['FIX'],
+    color:['240'],
     location: [450,280,0,0],
     size : [40],
     stimulus: '<div style="font-size:60px;">+</div>',
@@ -95,7 +94,8 @@ var ITI = {
   var fixation = {
     type: 'mousetracking',
     epoch:'fixation',
-    choices: ['+'],
+    broke_window_label: 'BROKE_FIX',
+    choices: ['FIX'],
     color:['240'],
     location: [450,280,0,0],
     size : [40],
@@ -108,8 +108,9 @@ var ITI = {
   var delay = {
     type: "mousetracking",
     epoch:'delay',
-    stimulus: jsPsych.timelineVariable('stimulus'),
-    choices :['+',''],
+    stimulus:'<div style="font-size:60px;">+</div>',
+    broke_window_label: 'FALSE_START',
+    choices :['FIX','TARGET'],
     color:['240','100'],
     size : [40,jsPsych.timelineVariable('target_size')],
     location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
@@ -118,28 +119,115 @@ var ITI = {
     // hold_duration: 100
   } // the mousetracking part of this task occurs in a 1000x600px container-- these dimensions can be altered by changing the jspsych mousetracking plugin in the jspsych folder
 
+  var rt_catch = {
+    type: "mousetracking",
+    epoch:'rt_catch',
+    stimulus:'<div style="font-size:60px;">+</div>',
+    broke_window_label: 'FS_CATCH',
+    choices :['FIX','TARGET'],
+    color:[jsPsych.timelineVariable('change_hue'),'100'],
+    size : [40,jsPsych.timelineVariable('target_size')],
+    location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
+    eventMonitor:'mouseover',
+    hold_duration: 100,
+    trial_duration: 200
+    
+  }
+
+  var rt_window = {
+    type: "mousetracking",
+    epoch:'rt_window',
+    stimulus:'<div style="font-size:60px;">+</div>',
+    broke_window_label: 'HIT',
+    choices :['MISSED','TARGET'],
+    color:[jsPsych.timelineVariable('change_hue'),'100'],
+    size : [40,jsPsych.timelineVariable('target_size')],
+    location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
+    eventMonitor:'mouseover',
+    hold_duration: 500
+    
+  } 
   var decisions = {
     type: "mousetracking",
     epoch:'decision',
-    stimulus: jsPsych.timelineVariable('stimulus'),
-    choices :['','+'],
+    stimulus: '<div style="font-size:60px;">+</div>',
+    broke_window_label: 'WRONG_TARG',
+    choices :['ACQUIRE_TARG','FIX'],
     size : [jsPsych.timelineVariable('target_size'),40],
     // x:jsPsych.timelineVariable('change_hue'),
     color:['100',jsPsych.timelineVariable('change_hue')],
     location: [jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y'),450,280],
     eventMonitor:'mouseover',
-    trial_duration: 1000,
-    hold_duration: 400
+    trial_duration: 300,
+    hold_duration: 5
 
   } // the mousetracking part of this task occurs in a 1000x600px container-- these dimensions can be altered by changing the jspsych mousetracking plugin in the jspsych folder
+  var target_hold = {
+    type: "mousetracking",
+    epoch:'targer_hold',
+    stimulus: '<div style="font-size:60px;">+</div>',
+    broke_window_label: 'BROKE_TARG',
+    choices :['SUCCESS','FIX'],
+    size : [jsPsych.timelineVariable('target_size'),40],
+    // x:jsPsych.timelineVariable('change_hue'),
+    color:['100',jsPsych.timelineVariable('change_hue')],
+    location: [jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y'),450,280],
+    eventMonitor:'mouseover',
+    trial_duration: 350,
+    hold_duration: 250
 
+  }
+  var feedback = {
+  epoch:'feedback',
+  type: 'html-keyboard-response',
+  trial_duration: 1000,
+  data:{change_hue:(jsPsych.timelineVariable('change_hue')),
+    target_size : jsPsych.timelineVariable('target_size'),
+    location : [jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
+    epoch: 'feedback'
+  },
+    
+  stimulus:   function(){
+    // The feedback stimulus is a dynamic parameter because we can't know in advance whether
+    // the stimulus should be 'correct' or 'incorrect'.
+    // Instead, this function will check the accuracy of the last response and use that information to set
+    // the stimulus value on each trial.
+    var last_trial_data = jsPsych.data.get().last(5).values();
+    result_disp='un'
+    if(last_trial_data[0].choice!='FIX')
+      {result_disp = 'FALSE START'}
+    else if(last_trial_data[1].choice!='FIX'){result_disp = 'FALSE START'}
+    else if(last_trial_data[2].choice=='MISSED'){result_disp='MISSED'}
+    else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR'}
+    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD FAILURE'}
+    else {result_disp='SUCCESS!'}
+
+    return "<p>"+result_disp+"</p>"; 
+    
+    
+  },
+  on_finish: function(data){
+    var last_trial_data = jsPsych.data.get().last(6).values();
+    result_disp='un'
+    if(last_trial_data[0].choice!='FIX')
+      {result_disp = 'FALSE START'}
+    else if(last_trial_data[1].choice!='FIX'){result_disp = 'FALSE START'}
+    else if(last_trial_data[2].choice=='MISSED'){result_disp='MISSED'}
+    else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR'}
+    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD FAILURE'}
+    else {result_disp='SUCCESS!'}
+    data.outcome=result_disp
+    }
+  
+
+}
   var recenter = {
     type: "recenter"
   } // if altering the dimensions of container in mousetracking plugin, please also do so in the recenter plugin in the jspsych folder
 
   var conclusion = {
     type: 'html-keyboard-response',
-    stimulus: 'Thank you for performing this task.',
+    stimulus: 'Thank you for performing this task. <br> Your behavioral data will now be saved. <br> Please email it to adithyanarayan101@gmail.com <br> Thanks!',
     choices: jsPsych.NO_KEYS
   }
 
@@ -167,9 +255,10 @@ var ITI = {
    stimulus: " ",
    trial_duration: 100,
    on_finish: function(data) {
-        var data1 = jsPsych.data.get().filter([{trial_type: "mousetracking"}]).last(nMain*3);
+        var data1 = jsPsych.data.get();
+
         if (file_name == null){
-          file_name = "mousetracking_"+partN+"_"+IDsub.toString()+".csv"}
+          file_name = "focustask_"+partN+"_"+IDsub.toString()+".csv"}
         else{
           file_name += ".csv"
         }
@@ -182,10 +271,43 @@ var ITI = {
   }
 
  var test_procedure = {
-    timeline: [ ITI,fixation,delay,decisions],
+    timeline: [ ITI,fixation,delay,rt_catch,rt_window,decisions,target_hold,feedback],
     repetitions: 1,  // 1 repition of the images in the folder
     timeline_variables: test_stimuli
   }
+
+
+var summary_plot= {
+
+  epoch:'feedback',
+  type: 'html-keyboard-response',
+  trial_duration: 20000,
+  stimulus: function(){
+   
+    success_rate_hue=[]
+    for (var i = 0; i <all_hues.length; i++){
+      count_success= jsPsych.data.get().filter({epoch:'feedback',change_hue:all_hues[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({epoch:'feedback',change_hue:all_hues[i]}).count()
+      success_rate_hue.push(count_success/count_all)
+
+    }
+
+    success_rate_target_size=[]
+    for (var i = 0; i <all_sizes.length; i++){
+      count_success= jsPsych.data.get().filter({epoch:'feedback',target_size:all_sizes[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({epoch:'feedback',target_size:all_sizes[i]}).count()
+      success_rate_target_size.push(count_success/count_all)
+
+    }
+
+    return "<p> GREAT JOB! <br> "+"Success rate (%) vs Hue (Hard -> Easy): " +Math.round(success_rate_hue[0]*100)+', '+Math.round(success_rate_hue[1]*100)+', '+Math.round(success_rate_hue[2]*100)+', '+Math.round(success_rate_hue[3]*100)+"<br> "+"Success rate (%) vs Target Size: Tiny = "+Math.round(success_rate_target_size[0]*100)+ ", Huge = "+Math.round(success_rate_target_size[1]*100)+"</p>"; 
+
+  },
+  choices: ['Continue']
+  
+   
+  }
+
 
 //  timeline.push(p_details)
   timeline.push({
@@ -196,6 +318,8 @@ var ITI = {
   timeline.push(p_details)
   timeline.push(instructions)
   timeline.push(test_procedure)
+  timeline.push(summary_plot)
+
   timeline.push(dataLog)
   timeline.push({
     type: 'fullscreen',

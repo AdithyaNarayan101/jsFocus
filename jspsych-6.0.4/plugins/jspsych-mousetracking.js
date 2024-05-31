@@ -51,7 +51,7 @@ jsPsych.plugins["mousetracking"] = (function() {
       time_res: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Mousetracking time resolution',
-        default: 20,
+        default: 5,
         description: "After how many miliseconds should x-y coordinates be sampled? If time_dim is 20, X and Y coordinates of the mouse will be sampled every 20 miliseconds. This is essentially the time resolution of mouse tracking."
       },
       eventMonitor: {
@@ -69,7 +69,7 @@ jsPsych.plugins["mousetracking"] = (function() {
       hold_duration:{
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Trial Hold Duration',
-        default: 100,
+        default: 200,
         description: 'How long to hold the mouse over .'
       },
       size:{
@@ -92,21 +92,16 @@ jsPsych.plugins["mousetracking"] = (function() {
     var paper = display_element.querySelector("#mousetracking-container");
 
     //display buttons
-  //  paper.innerHTML += '<div id="jspsych-html-button-response-btngroup">';
     paper.innerHTML += '<div id="jspsych-mousetracking-btngroup">';
-    var str = trial.choices[0]
+    var str = ""
     paper.innerHTML +=  '<div class="jspsych-btn-fb"  style="background-color:hsl('+trial.color[0]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[1]+'px; right:' + trial.location[0]+'px; width: '+trial.size[0]+'px; height:'+trial.size[0]+'px" id="mousetracking-button-' + 0 +'" data-choice="'+0+'">'+str+'</div>';
    
     if( trial.choices.length==2){
-      var str = trial.choices[1]
+      var str = ""
       paper.innerHTML +=  '<div class="jspsych-btn-fb" style="background-color:hsl('+trial.color[1]+' 90% 60%);display: inline-block; position: absolute; top:'+trial.location[3]+'px; right:' + trial.location[2]+'px; width: '+trial.size[1]+'px; height:'+trial.size[1]+'px" id="mousetracking-button-' + 1 +'" data-choice="'+1+'">'+str+'</div>';
-      // paper.innerHTML += '<div id="jspsych-mousetracking-stimulus" style = " position: absolute; bottom:'+ (cont_height - trial.stimulus_size[1])/2 +'px; left:'+ (cont_width - trial.stimulus_size[0])/2 +'px"><img style="width:'+trial.stimulus_size[0]+'px; height:'+trial.stimulus_size[0]+'px" src = "'+trial.stimulus+'"/img></div>';
 
     }
-    // if( trial.choices.length==1){
-    //   paper.innerHTML += '<div id="jspsych-mousetracking-stimulus" style = " position: absolute; bottom:px; left:0px"><img style="width:0px; height:0px" ></div>';
-
-    // }
+    
 
     paper.innerHTML += '<div id="jspsych-mousetracking-stimulus" style = " position: absolute; bottom:px; left:0px"><img style="width:0px; height:0px" ></div>';
 
@@ -122,7 +117,7 @@ YmousePos = []
 time = []
 numMouse=0
 var m_pos_x,m_pos_y;
-window.onmousemove = function(e) { m_pos_x = Math.round(e.pageX-$(paper).offset().left); m_pos_y = Math.round(e.pageY-$(paper).offset().top); }
+window.onmouseover = function(e) { m_pos_x = Math.round(e.pageX-$(paper).offset().left); m_pos_y = Math.round(e.pageY-$(paper).offset().top); }
 XmousePos.push(m_pos_x)
 YmousePos.push(m_pos_y)
 time.push(Date.now()-start_time)
@@ -144,7 +139,8 @@ var mouseInterval = setInterval(function() {
       if(trial.eventMonitor == 'click'){
         display_element.querySelector('#mousetracking-button-' + i).addEventListener(trial.eventMonitor, function(e){
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
-          after_response(choice)});}
+          after_response(choice)
+        });}
       if(trial.eventMonitor == 'mouseover'){
         date=1
         
@@ -184,7 +180,8 @@ var mouseInterval = setInterval(function() {
     // store response
     var response = {
       rt: null,
-      button: null
+      button: 'Timeout'
+      
     };
 
     // function to handle responses by the subject
@@ -209,11 +206,13 @@ var mouseInterval = setInterval(function() {
         //btns[i].removeEventListener('click');
         btns[i].setAttribute('disabled', 'disabled');
       }
-      if(choice==-10){
+      if(choice==trial.broke_window_label){
+        
         display_element.innerHTML = '';
-        sleep(3000).then(() => { end_trial(); });
+        // sleep(3000).then(() => { end_trial(); });
+        end_trial();
       }
-      if(choice!=-10){ end_trial();}
+      if(choice!=trial.broke_window_label){ end_trial();}
     };
     // function hold_mouse(){
     //   if(!date){date = Date.now()}
@@ -229,26 +228,30 @@ var mouseInterval = setInterval(function() {
     // function hold_mouse(e){}
       
     function hold_mouse(e){ 
-      var choice =-1
-      if(trial.epoch=='decision'){
-        var choice =e.currentTarget.getAttribute('data-choice');}
+      var choice = trial.choices[e.currentTarget.getAttribute('data-choice')];
+      timer = setInterval(function(){
         
-      timer = setInterval(function(e){
         if(date==1){date=Date.now()}
         if(Date.now()-date>trial.hold_duration){ // don't use dataset for jsdom compatibility
-      after_response(choice)
-      date=1
-      clearInterval(timer)
+          
+          // if(trial.epoch!='decision'){
+          //   choice = ;}
+          // else{var choice ="Target";}
+            
+          after_response(choice)
+          date=1
+          clearInterval(timer)
       
       }
-      },50)
+      },1)
       }
     function exit_mouse(e){
       
-      var choice = -10
+      var choice = trial.broke_window_label
       clearInterval(timer)
       date=1
-      after_response(choice)
+      if(trial.epoch!="ITI"){
+      after_response(choice)}
     }
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -258,7 +261,14 @@ var mouseInterval = setInterval(function() {
 
       // kill any remaining setTimeout handlers
       jsPsych.pluginAPI.clearAllTimeouts();
+      // Get a reference to the last interval + 1
+      const interval_id = window.setInterval(function(){}, Number.MAX_SAFE_INTEGER);
 
+      // Clear any timeout/interval up to that id
+      for (let i = 1; i < interval_id; i++) {
+        window.clearInterval(i);
+      }
+      // jsPsych.pluginAPI.clearAllIntervals();
       clearInterval(mouseInterval)
 
       // gather the data to store for the trial
@@ -266,7 +276,7 @@ var mouseInterval = setInterval(function() {
         "rt": response.rt,
         "epoch":trial.epoch,
         "stimulus": trial.stimulus,
-        "button_pressed": response.button,
+        "choice": response.button,
         "x-position": XmousePos,
         "y-position": YmousePos,
         "mice-times": time,
@@ -284,6 +294,7 @@ var mouseInterval = setInterval(function() {
     // end trial if time limit is set
     if (trial.trial_duration !== null) {
       jsPsych.pluginAPI.setTimeout(function() {
+        if(trial.epoch=='decision'){response.button= trial.broke_window_label}
         end_trial();
       }, trial.trial_duration);
     }
