@@ -29,8 +29,7 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain =128// number of trials
-
+var nMain =100// number of trials
 var test_stimuli = []  // sets up a directory of stimuli
 var images = []
 for (var i = 1; i <=nMain; i++){
@@ -41,9 +40,7 @@ for (var i = 1; i <=nMain; i++){
 //  location_y= [280,280,280-250,280+250,280-250/Math.sqrt(2),280+250/Math.sqrt(2),280-250/Math.sqrt(2),280+250/Math.sqrt(2)]
  location_x= [450+250,450-250,450,450]
  location_y= [280,280,280-250,280+250]
- 
  rand_target = Math.floor(Math.random() * (location_x.length) + 0)
-
  all_hues = ['238','233','230','225']
  rand_hue = Math.floor(Math.random() * (all_hues.length) + 0)
  rand_time = randomExponential(1/500)+500
@@ -69,7 +66,7 @@ function randomExponential(rate, randomUniform) {
 var instructions = {
   type: "instructions",
   pages: function(){
-  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color. <br><br></div>'
+  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color. There will be a total of 100 trials <br><br></div>'
   return [pageOne]
   },
       allow_backward: false,
