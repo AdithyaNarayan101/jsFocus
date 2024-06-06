@@ -29,8 +29,10 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain =100// number of trials
-var test_stimuli = []  // sets up a directory of stimuli
+var nMain =30// number of trials
+var test_stimuli_easy = []  // sets up a directory of stimuli
+var test_stimuli_hard = []  // sets up a directory of stimuli
+quit_flag=false
 var images = []
 for (var i = 1; i <=nMain; i++){
  name = "mt_img/anim"+2+".jpg"
@@ -41,14 +43,18 @@ for (var i = 1; i <=nMain; i++){
  location_x= [450+250,450-250,450,450]
  location_y= [280,280,280-250,280+250]
  rand_target = Math.floor(Math.random() * (location_x.length) + 0)
- all_hues = ['238','233','230','225']
- rand_hue = Math.floor(Math.random() * (all_hues.length) + 0)
+ all_hues_hard = ['239','238','233','230']
+ all_hues_easy = ['233','230','215','210']
+
+ rand_hue = Math.floor(Math.random() * (all_hues_hard.length) + 0)
  rand_time = randomExponential(1/500)+500
  if(rand_time>2000){rand_time=2000}
 
  all_sizes = [20,70],
  rand_size = Math.floor(Math.random() * (all_sizes.length) + 0)
- test_stimuli.push({stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
+ test_stimuli_hard.push({stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues_hard[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
+ test_stimuli_easy.push({stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues_easy[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
+
 }
 function randomExponential(rate, randomUniform) {
   // http://en.wikipedia.org/wiki/Exponential_distribution#Generating_exponential_variates
@@ -66,13 +72,49 @@ function randomExponential(rate, randomUniform) {
 var instructions = {
   type: "instructions",
   pages: function(){
-  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color. There will be a total of 100 trials <br><br></div>'
+  var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task.<br>Move to the green target when the center blue circle changes color.<br>Try to be as fast and accurate as possible. <br> There will be alternating blocks of easy and hard trials. <br> You can take a break in between blocks and quit after every other block. <br></div>'
   return [pageOne]
   },
       allow_backward: false,
   show_clickable_nav: true,
-  button_label_next: "OK"
+  button_label_next: "OK",
+  data:{time:Date()}
 };
+
+var instructions_easy = {
+    type: 'html-keyboard-response',
+    stimulus: 'EASY BLOCK <br> To Start/Continue, press y <br> To end the session, press n',
+    
+    // conditional_function: function(){
+    // if(quit_flag){return false}
+    // else {return true}
+    // },
+    data:{trial_status:'continue_flag'},
+    choices: ['y','n'],
+  }
+  var instructions_hard = {
+    type: 'html-keyboard-response',
+    stimulus: 'HARD BLOCK <br> Press SPACE to continue',
+    choices: [' '],
+    data:{trial_status:'forced_block'}
+  }
+
+var instructions_easy_timeline={
+  timeline: [ instructions_easy],
+  repetitions: 1,  // 1 repition of the images in the folder
+  conditional_function: function(){
+    if(quit_flag){return false}
+    else {return true}
+    },
+}
+var instructions_hard_timeline={
+  timeline: [ instructions_hard],
+  repetitions: 1,  // 1 repition of the images in the folder
+  conditional_function: function(){
+    if(quit_flag){return false}
+    else {return true}
+    },
+}
 
 var ITI = {
     type: 'mousetracking',
@@ -230,7 +272,7 @@ var ITI = {
 
   var p_details = {
     type:"survey-text",
-    questions: [{prompt: "Enter subject number"}],
+    questions: [{prompt: "Enter subject name"}],
     on_finish:function(){
       partN = jsPsych.data.get().last(1).values()[0].partNum
       partN = partN.replace(/['"]+/g,'')
@@ -267,12 +309,49 @@ var ITI = {
   }
   }
 
- var test_procedure = {
+ var test_procedure_easy = {
     timeline: [ ITI,fixation,delay,rt_catch,rt_window,decisions,target_hold,feedback],
     repetitions: 1,  // 1 repition of the images in the folder
-    timeline_variables: test_stimuli
+    timeline_variables: test_stimuli_easy,
+    conditional_function: function(){
+    var last_trial_data = jsPsych.data.get().last(1).values();
+    if(quit_flag){return false}
+    if(last_trial_data[0].trial_status=='continue_flag'){
+    if(last_trial_data[0].key_press == 89){
+      return true;
+
+    }
+    else{
+      quit_flag=true;
+      return false;
+    }
+    }
+    else{return true}},
+    data:{block:'easy'}
   }
 
+  var test_procedure_hard = {
+    timeline: [ ITI,fixation,delay,rt_catch,rt_window,decisions,target_hold,feedback],
+    repetitions: 1,  // 1 repition of the images in the folder
+    timeline_variables: test_stimuli_hard,
+    conditional_function: function(){
+    var last_trial_data = jsPsych.data.get().last(1).values();
+    if(quit_flag){return false}
+    if(last_trial_data[0].trial_status=='continue_flag'){
+    if(last_trial_data[0].key_press == 89){
+      return true;
+
+    }
+    else{
+      return false;
+    }
+    }
+    else{return true}},
+
+    data:{block:'hard'}
+  }
+
+  
 
 var summary_plot= {
 
@@ -281,11 +360,18 @@ var summary_plot= {
   trial_duration: 20000,
   stimulus: function(){
    
-    success_rate_hue=[]
-    for (var i = 0; i <all_hues.length; i++){
-      count_success= jsPsych.data.get().filter({epoch:'feedback',change_hue:all_hues[i],outcome:'SUCCESS!'}).count()
-      count_all= jsPsych.data.get().filter({epoch:'feedback',change_hue:all_hues[i]}).count()
-      success_rate_hue.push(count_success/count_all)
+    success_rate_hue_hard=[]
+    for (var i = 0; i <all_hues_hard.length; i++){
+      count_success= jsPsych.data.get().filter({block:'hard',epoch:'feedback',change_hue:all_hues_hard[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({block:'hard',epoch:'feedback',change_hue:all_hues_hard[i]}).count()
+      success_rate_hue_hard.push(count_success/count_all)
+
+    }
+    success_rate_hue_easy=[]
+    for (var i = 0; i <all_hues_easy.length; i++){
+      count_success= jsPsych.data.get().filter({block:'easy',epoch:'feedback',change_hue:all_hues_easy[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({block:'easy',epoch:'feedback',change_hue:all_hues_easy[i]}).count()
+      success_rate_hue_easy.push(count_success/count_all)
 
     }
 
@@ -297,10 +383,12 @@ var summary_plot= {
 
     }
 
-    return "<p> GREAT JOB! <br> "+"Success rate (%) vs Hue (Hard -> Easy): " +Math.round(success_rate_hue[0]*100)+', '+Math.round(success_rate_hue[1]*100)+', '+Math.round(success_rate_hue[2]*100)+', '+Math.round(success_rate_hue[3]*100)+"<br> "+"Success rate (%) vs Target Size: Tiny = "+Math.round(success_rate_target_size[0]*100)+ ", Huge = "+Math.round(success_rate_target_size[1]*100)+"</p>"; 
+    return "<p> GREAT JOB! (Hit SPACE to continue) <br> "+"Success rate (%) vs Hue (Hard Block): " +Math.round(success_rate_hue_hard[0]*100)+', '+Math.round(success_rate_hue_hard[1]*100)+', '+Math.round(success_rate_hue_hard[2]*100)+', '+Math.round(success_rate_hue_hard[3]*100)+"<br>"+
+      "Success rate (%) vs Hue (Easy Block): " +Math.round(success_rate_hue_easy[0]*100)+', '+Math.round(success_rate_hue_easy[1]*100)+', '+Math.round(success_rate_hue_easy[2]*100)+', '+Math.round(success_rate_hue_easy[3]*100)+
+      "<br> "+"Success rate (%) vs Target Size: Tiny = "+Math.round(success_rate_target_size[0]*100)+ ", Huge = "+Math.round(success_rate_target_size[1]*100)+"</p>"; 
 
   },
-  choices: ['Continue']
+  choices: [' ']
   
    
   }
@@ -314,9 +402,23 @@ var summary_plot= {
 
   timeline.push(p_details)
   timeline.push(instructions)
-  timeline.push(test_procedure)
+  timeline.push(instructions_easy_timeline)
+  timeline.push(test_procedure_easy)
+  timeline.push(instructions_hard_timeline)
+  timeline.push(test_procedure_hard)
+  timeline.push(instructions_easy_timeline)
+  timeline.push(test_procedure_easy)
+  timeline.push(instructions_hard_timeline)
+  timeline.push(test_procedure_hard)
+  timeline.push(instructions_easy_timeline)
+  timeline.push(test_procedure_easy)
+  timeline.push(instructions_hard_timeline)
+  timeline.push(test_procedure_hard)
+  timeline.push(instructions_easy_timeline)
+  timeline.push(test_procedure_easy)
+  timeline.push(instructions_hard_timeline)
+  timeline.push(test_procedure_hard)
   timeline.push(summary_plot)
-
   timeline.push(dataLog)
   timeline.push({
     type: 'fullscreen',
