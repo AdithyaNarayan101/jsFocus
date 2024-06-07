@@ -83,7 +83,7 @@ var instructions = {
   pages: function(){
   var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task </div>'
   var pageTwo = '<div style="font-size:20px;">To start each trial, hold the mouse cursor at the blue circle in the center. <br><br> Move to the peripheral target when the center blue circle changes color.<br><br>Try to be as fast and accurate as possible. </div>'
-  var pageThree = '<div style="font-size:20px;">The color of the target tells you how many points you will get if you succeed on the trial. <br> <p style = "color:red;"> Red = 10 </p> <p style = "color:orange;"> Orange = 20 </p> <p style = "color:green;"> Green = 50 </p> <br></div>'
+  var pageThree = '<div style="font-size:20px;">The color of the target tells you how many points you will get if you succeed on the trial. <br> <p style = "color:red;"> Red = 10 </p> <p style = "color:orange;"> Orange = 20 </p> <p style = "color:green;"> Green = 50 </p>  An incorrect trial will cost you -20 points. </div>'
   var pageFour = '<div style="font-size:20px;">There will be alternating blocks of easy and hard trials. <br><br> You can take a break in between blocks. <br><br> You can quit after every other block. <br></div>'
   return [pageOne,pageTwo,pageThree,pageFour]
   },
@@ -252,11 +252,11 @@ var ITI = {
     result_disp='un'
     color_outcome='red';
     if(last_trial_data[0].choice!='FIX')
-      {result_disp = 'FALSE START'}
-    else if(last_trial_data[1].choice!='FIX'){result_disp = 'FALSE START'}
-    else if(last_trial_data[2].choice=='MISSED'){result_disp='MISSED'}
-    else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR'}
-    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD FAILURE'}
+      {result_disp = 'FALSE START - 20 points' }
+    else if(last_trial_data[1].choice!='FIX'){result_disp = 'FALSE START - 20 points'}
+    else if(last_trial_data[2].choice=='MISSED'){result_disp='MISSED - 20 points'}
+    else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR - 20 points'}
+    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD FAILURE - 20 points'}
     else {result_disp='SUCCESS! + ' + last_trial_data[4].reward+' points';
     score=score+last_trial_data[4].reward;
     color_outcome='green';
