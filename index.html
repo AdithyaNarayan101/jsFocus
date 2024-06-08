@@ -29,7 +29,7 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain =2// number of trials
+var nMain =25// number of trials
 var test_stimuli_easy = []  // sets up a directory of stimuli
 var test_stimuli_hard = []  // sets up a directory of stimuli
 quit_flag=false
@@ -84,7 +84,7 @@ var instructions = {
   var pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br>Welcome to the Focus task </div>'
   var pageTwo = '<div style="font-size:20px;">To start each trial, hold the mouse cursor at the blue circle in the center. <br><br> Move to the peripheral target when the center blue circle changes color.<br><br>Try to be as fast and accurate as possible. </div>'
   var pageThree = '<div style="font-size:20px;">The color of the target tells you how many points you will get if you succeed on the trial. <br> <p style = "color:red;"> Red = 10 </p> <p style = "color:orange;"> Orange = 20 </p> <p style = "color:green;"> Green = 50 </p>  An incorrect trial will cost you -20 points. </div>'
-  var pageFour = '<div style="font-size:20px;">There will be alternating blocks of easy and hard trials. <br><br> You can take a break in between blocks. <br><br> You can quit after every other block. <br></div>'
+  var pageFour = '<div style="font-size:20px;">There will be alternating blocks of 25 easy and 25 hard trials. <br><br> You can take a break in between blocks. <br><br> You can quit after every other block. <br></div>'
   return [pageOne,pageTwo,pageThree,pageFour]
   },
   allow_backward: false,
@@ -210,7 +210,7 @@ var ITI = {
     color:[jsPsych.timelineVariable('reward_col'),jsPsych.timelineVariable('change_hue')],
     location: [jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y'),450,280],
     eventMonitor:'mouseover',
-    trial_duration: 300,
+    trial_duration: 400,
     hold_duration: 5
 
   } // the mousetracking part of this task occurs in a 1000x600px container-- these dimensions can be altered by changing the jspsych mousetracking plugin in the jspsych folder
