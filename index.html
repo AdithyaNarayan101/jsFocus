@@ -9,7 +9,10 @@
     <script src="jspsych-6.0.4/plugins/jspsych-recenter.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-instructions.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-fullscreen.js"></script>
+    <script src="jspsych-6.0.4/plugins/jspsych-external-html.js"></script>
+
     <script src="jspsych-6.0.4/plugins/plugin-canvas-keyboard-response.js"></script>
+    
     <script
     src="node_modules/chart.js/dist/chart.umd.js">
 </script>
@@ -85,7 +88,9 @@ var instructions = {
   var pageTwo = '<div style="font-size:20px;">To start each trial, hold the mouse cursor at the blue circle in the center. <br><br> Move to the peripheral target when the center blue circle changes color.<br><br>Try to be as fast and accurate as possible. </div>'
   var pageThree = '<div style="font-size:20px;">The color of the target tells you how many points you will get if you succeed on the trial. <br> <p style = "color:red;"> Red = 10 </p> <p style = "color:orange;"> Orange = 20 </p> <p style = "color:green;"> Green = 50 </p>  An incorrect trial will cost you -20 points. </div>'
   var pageFour = '<div style="font-size:20px;">There will be alternating blocks of 25 easy and 25 hard trials. <br><br> You can take a break in between blocks. <br><br> You can quit after every other block. <br></div>'
-  return [pageOne,pageTwo,pageThree,pageFour]
+  var pageFive = '<div style="font-size:20px;">Ideally, perform this task with a laptop display and trackpad. <br><br> Try to maintain the same distance from the screen.<br></div>'
+
+  return [pageOne,pageTwo,pageThree,pageFour,pageFive]
   },
   allow_backward: false,
   show_clickable_nav: true,
@@ -181,7 +186,7 @@ var ITI = {
     size : [40,jsPsych.timelineVariable('target_size')],
     location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
     eventMonitor:'mouseover',
-    hold_duration: 100,
+    hold_duration: 80,
     trial_duration: 200
     
   }
@@ -196,8 +201,7 @@ var ITI = {
     size : [40,jsPsych.timelineVariable('target_size')],
     location: [450,280,jsPsych.timelineVariable('location_x'),jsPsych.timelineVariable('location_y')],
     eventMonitor:'mouseover',
-    hold_duration: 500
-    
+    hold_duration: 370
   } 
   var decisions = {
     type: "mousetracking",
@@ -378,7 +382,7 @@ var ITI = {
     data:{block:'hard'},
   }
 
-  
+
 
 var summary_plot= {
 
@@ -435,7 +439,7 @@ var summary_plot= {
     type: 'fullscreen',
     fullscreen_mode: true
   });
-
+  
   timeline.push(p_details)
   timeline.push(instructions)
   timeline.push(instructions_easy_timeline)
