@@ -258,9 +258,9 @@ var ITI = {
     if(last_trial_data[0].choice!='FIX')
       {result_disp = 'FALSE START - 20 points' }
     else if(last_trial_data[1].choice!='FIX'){result_disp = 'FALSE START - 20 points'}
-    else if(last_trial_data[2].choice=='MISSED'){result_disp='MISSED - 20 points'}
+    else if(last_trial_data[2].choice=='MISSED'){result_disp='TOO SLOW - 20 points'}
     else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR - 20 points'}
-    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD FAILURE - 20 points'}
+    else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD ERROR - 20 points'}
     else {result_disp='SUCCESS! + ' + last_trial_data[4].reward+' points';
     score=score+last_trial_data[4].reward;
     color_outcome='green';
