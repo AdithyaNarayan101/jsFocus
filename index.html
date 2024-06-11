@@ -10,7 +10,7 @@
     <script src="jspsych-6.0.4/plugins/jspsych-instructions.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-fullscreen.js"></script>
     <script src="jspsych-6.0.4/plugins/jspsych-external-html.js"></script>
-
+    <script src="jspsych-6.0.4/plugins/jspsych-canvas-keyboard-response.js"></script>
     <script src="jspsych-6.0.4/plugins/plugin-canvas-keyboard-response.js"></script>
     
     <script
@@ -32,7 +32,7 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain =25// number of trials
+var nMain =30// number of trials
 var test_stimuli_easy = []  // sets up a directory of stimuli
 var test_stimuli_hard = []  // sets up a directory of stimuli
 quit_flag=false
@@ -40,6 +40,7 @@ quit_flag=false
 reward_col=['0','45','100']
 reward_val=[10,20,50]
 var score=0
+var num_trials = 0
 block_var = 'easy'
 var images = []
 for (var i = 1; i <=nMain; i++){
@@ -54,6 +55,7 @@ for (var i = 1; i <=nMain; i++){
  
  all_hues_hard = ['239','238','233','230']
  all_hues_easy = ['233','230','215','210']
+ all_hues = ['239','238','233','230','215','210']
 
  rand_hue = Math.floor(Math.random() * (all_hues_hard.length) + 0)
  
@@ -133,6 +135,13 @@ var instructions_hard_timeline={
     else {return true}
     },
 }
+function drawCirc(c){
+    var ctx = c.getContext('2d');
+    ctx.beginPath();
+    ctx.arc(100, 75, 50, 0, 2 * Math.PI);
+    ctx.stroke();
+}
+
 
 var ITI = {
     type: 'mousetracking',
@@ -262,11 +271,12 @@ var ITI = {
     else if(last_trial_data[3].choice!='ACQUIRE_TARG'){result_disp='REACH ERROR - 20 points'}
     else if(last_trial_data[4].choice!='SUCCESS'){result_disp='TARGET HOLD ERROR - 20 points'}
     else {result_disp='SUCCESS! + ' + last_trial_data[4].reward+' points';
+    num_trials=num_trials+1
     score=score+last_trial_data[4].reward;
     color_outcome='green';
     }
-    if(last_trial_data[4].choice!='SUCCESS'){score=score-20;}
-    return "<p style=color:"+color_outcome+";>"+result_disp+"</p>" + " SCORE: " + score; 
+    if(last_trial_data[4].choice!='SUCCESS'){score=score-20;num_trials=num_trials+1;}
+    return "<p style=color:"+color_outcome+";>"+result_disp+"</p>" + " SCORE: " + score + ", Trial number: " + num_trials; 
     
     
   },
@@ -433,6 +443,189 @@ var summary_plot= {
    
   }
 
+  var feedback_blocks = {
+    type: 'canvas-keyboard-response',
+    canvas_size: [300, 300],
+    stimulus: function(c){
+
+    success_rate_hue_hard=[]
+    for (var i = 0; i <all_hues.length; i++){
+      count_success= jsPsych.data.get().filter({block:'hard',epoch:'feedback',change_hue:all_hues[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({block:'hard',epoch:'feedback',change_hue:all_hues[i]}).count()
+      success_rate_hue_hard.push(count_success/count_all)
+
+    }
+    success_rate_hue_easy=[]
+    for (var i = 0; i <all_hues.length; i++){
+      count_success= jsPsych.data.get().filter({block:'easy',epoch:'feedback',change_hue:all_hues[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({block:'easy',epoch:'feedback',change_hue:all_hues[i]}).count()
+      success_rate_hue_easy.push(count_success/count_all)
+
+    }
+
+new Chart(c, {
+  type: "line",
+  data: {
+    labels: all_hues,
+    datasets: [{
+      label:'Hard block',
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "darkblue",
+      borderColor: "darkblue",
+      data: success_rate_hue_hard
+    },{
+      label:'Easy block',
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "lightblue",
+      borderColor: "lightblue",
+      data: success_rate_hue_easy
+    }
+  ]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+    yAxes: [{
+      scaleLabel: {
+        display: true,
+        labelString: 'Success rate'
+      }
+    }],
+    xAxis:[{
+      scaleLabel: {
+        display: true,
+        labelString: 'Change Hue'
+      }
+      }]
+  }    
+    // scales: {
+    //   xAxes: [{ticks: {min: 40, max:160}}],
+    //   yAxes: [{ticks: {min: 6, max:16}}],
+    // }
+  }
+});
+
+return Chart 
+
+    },
+    prompt: '<p>Success rate vs Change in Hue</p><br> Hit SPACE to continue',
+    choices: [' '],
+    trial_duration: 20000,
+    // data: {shape: 'circle', radius: 50}
+}
+var feedback_reward = {
+    type: 'canvas-keyboard-response',
+    canvas_size: [300, 300],
+    stimulus: function(c){
+
+    success_rate_reward=[]
+    for (var i = 0; i <reward_val.length; i++){
+      count_success= jsPsych.data.get().filter({epoch:'feedback',reward:reward_val[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({epoch:'feedback',reward:reward_val[i]}).count()
+      success_rate_reward.push(count_success/count_all)
+
+    }
+    
+
+new Chart(c, {
+  type: "line",
+  data: {
+    labels: reward_val,
+    datasets: [{
+      label:'Reward',
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "red",
+      borderColor: "red",
+      data: success_rate_reward
+    }
+  ]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+    yAxes: [{
+      scaleLabel: {
+        display: true,
+        labelString: 'Success rate'
+      }
+    }],
+    xAxis:[{
+      scaleLabel: {
+        display: true,
+        labelString: 'Reward Size'
+      }
+      }]}
+  }
+});
+
+return Chart 
+
+    },
+    prompt: '<p>Success rate vs Reward Size</p><br> Hit SPACE to continue',
+    choices: [' '],
+    trial_duration: 20000,
+    // data: {shape: 'circle', radius: 50}
+}
+
+var feedback_target_size = {
+    type: 'canvas-keyboard-response',
+    canvas_size: [300, 300],
+    stimulus: function(c){
+
+    success_rate_target_size=[]
+    for (var i = 0; i <all_sizes.length; i++){
+      count_success= jsPsych.data.get().filter({epoch:'feedback',target_size:all_sizes[i],outcome:'SUCCESS!'}).count()
+      count_all= jsPsych.data.get().filter({epoch:'feedback',target_size:all_sizes[i]}).count()
+      success_rate_target_size.push(count_success/count_all)
+
+    }
+    
+
+new Chart(c, {
+  type: "line",
+  data: {
+    labels: all_sizes,
+    datasets: [{
+      label:'Target Size',
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "green",
+      borderColor: "green",
+      data: success_rate_target_size
+    }
+  ]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+    yAxes: [{
+      scaleLabel: {
+        display: true,
+        labelString: 'Success rate'
+      }
+    }],
+    xAxis:[{
+      scaleLabel: {
+        display: true,
+        labelString: 'Target Size'
+      }
+      }]}
+  }
+});
+
+return Chart 
+
+    },
+    prompt: '<p>Success rate vs Reward Size</p><br> Hit SPACE to continue',
+    choices: [' '],
+    trial_duration: 20000,
+    // data: {shape: 'circle', radius: 50}
+}
+
+
 
 //  timeline.push(p_details)
   timeline.push({
@@ -441,9 +634,11 @@ var summary_plot= {
   });
   
   timeline.push(p_details)
+
   timeline.push(instructions)
   timeline.push(instructions_easy_timeline)
   
+
   timeline.push(test_procedure_easy)
   timeline.push(instructions_hard_timeline)
   timeline.push(test_procedure_hard)
@@ -466,6 +661,9 @@ var summary_plot= {
 
   timeline.push(test_procedure_hard)
   timeline.push(summary_plot)
+  timeline.push(feedback_blocks)
+  timeline.push(feedback_reward)
+  timeline.push(feedback_target_size)
   timeline.push(dataLog)
   timeline.push({
     type: 'fullscreen',
