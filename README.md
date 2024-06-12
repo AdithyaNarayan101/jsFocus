@@ -11,4 +11,3 @@ Coded by Adithya Narayan Chandrasekaran, built off of moustracking experiment by
 ## To Do
 
 1) Fix target locations across target sizes: looks like the centers are a bit offset for huge vs tiny
-2) Add blocks (including option to end experiment after each block)
