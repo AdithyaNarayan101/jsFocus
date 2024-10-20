@@ -32,7 +32,7 @@ local = true // save the data file locally.
 
 /*create timeline*/
 var timeline = [];
-var nMain =15// number of trials
+var nMain =20// number of trials
 var test_stimuli_easy = []  // sets up a directory of stimuli
 var test_stimuli_hard = []  // sets up a directory of stimuli
 quit_flag=false
@@ -53,9 +53,9 @@ for (var i = 1; i <=nMain; i++){
 //  location_y= [280,280,280-250,280+250]
  rand_target = Math.floor(Math.random() * (location_x.length) + 0)
  
- all_hues_hard = ['239','235','230','220']
- all_hues_easy = ['230','220','210','200']
- all_hues = ['239','235','230','220','210','200']
+ all_hues_hard = ['239','238','236','235']
+ all_hues_easy = ['236','235','230','228']
+ all_hues = ['239','238','236','235','230','228']
 
  rand_hue = Math.floor(Math.random() * (all_hues_hard.length) + 0)
  
@@ -64,7 +64,7 @@ for (var i = 1; i <=nMain; i++){
 
  rand_reward = Math.floor(Math.random() * (reward_val.length) + 0)
  all_rewards = [1,2,3]
- all_sizes = [50,100],
+ all_sizes = [40,100],
  rand_size = Math.floor(Math.random() * (all_sizes.length) + 0)
  test_stimuli_hard.push({reward_col: reward_col[rand_reward],reward_size: reward_val[rand_reward],stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues_hard[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
  test_stimuli_easy.push({reward_col: reward_col[rand_reward],reward_size: reward_val[rand_reward],stimulus: name, target_size: all_sizes[rand_size],change_hue: all_hues_easy[rand_hue],location_x:location_x[rand_target],location_y: location_y[rand_target],delay_time:rand_time})
